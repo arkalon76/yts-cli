@@ -15,6 +15,7 @@ import (
 	"github.com/hekmon/transmissionrpc/v2"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
@@ -126,9 +127,13 @@ func showLatestMovies() {
 	if err != nil {
 		panic(err)
 	}
+	w, _, err := terminal.GetSize(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
 
 	table := uitable.New()
-	table.MaxColWidth = 120
+	table.MaxColWidth = uint(w)
 	table.Wrap = false
 	table.AddRow(color.GreenString("No:"), color.GreenString("Title:"), color.GreenString("Year:"), color.GreenString("Rating:"), color.GreenString("Uploaded:"), color.GreenString("Synopsis:"))
 	table.AddRow(color.GreenString("---"), color.GreenString("------"), color.GreenString("-----"), color.GreenString("-------"), color.GreenString("---------"), color.GreenString("---------"))

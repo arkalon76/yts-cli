@@ -9,4 +9,5 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/spf13/viper v1.9.0
 	github.com/urfave/cli/v2 v2.3.0
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 )
