@@ -1,9 +1,12 @@
 package config
 
 import (
+	"bufio"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -48,6 +51,24 @@ func NewDefault(filename, path string) (*Configuration, error) {
 			DestinationPath: "<path for downloads>",
 		},
 	}, nil
+}
+
+func (c *Configuration) AskForUserConfirmation() bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Printf("The config file is missing!\n")
+	fmt.Printf("Do you want me to create an default one? [y/n]")
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
+	response = strings.ToLower(strings.TrimSpace(response))
+	if response == "y" || response == "yes" {
+		return true
+	} else {
+		return false
+	}
+
 }
 
 func (c *Configuration) SaveToDisk() error {
