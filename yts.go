@@ -10,12 +10,12 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/arkalon76/yts-cli/config"
 	"github.com/fatih/color"
 	"github.com/gosuri/uitable"
 	"github.com/hekmon/transmissionrpc/v2"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli/v2"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 const (
@@ -101,8 +101,20 @@ func main() {
 		},
 	}
 
-	loadConfig("config.yaml")
-	err := app.Run(os.Args)
+	config, err := config.NewDefault("config.yaml", "~/.config/yts")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !config.ConfigExist() {
+		fmt.Println("Unable to find config file. Generating a default file for you.")
+		fmt.Printf("You find it in %s/%s/n", config.Path, config.Filename)
+		err := config.SaveToDisk()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	loadConfig(config.Path)
+	err = app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -112,7 +124,7 @@ func main() {
 func loadConfig(path string) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath(path)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			fmt.Println("Cant find config file")
@@ -127,13 +139,9 @@ func showLatestMovies() {
 	if err != nil {
 		panic(err)
 	}
-	w, _, err := terminal.GetSize(int(os.Stdin.Fd()))
-	if err != nil {
-		panic(err)
-	}
 
 	table := uitable.New()
-	table.MaxColWidth = uint(w)
+	table.MaxColWidth = 80
 	table.Wrap = false
 	table.AddRow(color.GreenString("No:"), color.GreenString("Title:"), color.GreenString("Year:"), color.GreenString("Rating:"), color.GreenString("Uploaded:"), color.GreenString("Synopsis:"))
 	table.AddRow(color.GreenString("---"), color.GreenString("------"), color.GreenString("-----"), color.GreenString("-------"), color.GreenString("---------"), color.GreenString("---------"))
