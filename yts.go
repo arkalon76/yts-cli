@@ -100,18 +100,24 @@ func main() {
 			},
 		},
 	}
-
-	config, err := config.NewDefault("config.yaml", "~/.config/yts")
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	config, err := config.NewDefault("config.yaml", fmt.Sprintf("%s/.config/yts", homedir))
 	if err != nil {
 		log.Fatal(err)
 	}
 	if !config.ConfigExist() {
-		fmt.Println("Unable to find config file. Generating a default file for you.")
-		fmt.Printf("You find it in %s/%s/n", config.Path, config.Filename)
+		if !config.AskForUserConfirmation() {
+			fmt.Println("You need a config file for us to continue... Exiting..")
+			os.Exit(0)
+		}
 		err := config.SaveToDisk()
 		if err != nil {
 			log.Fatal(err)
 		}
+
 	}
 	loadConfig(config.Path)
 	err = app.Run(os.Args)
@@ -125,6 +131,7 @@ func loadConfig(path string) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(path)
+	fmt.Printf("Loading config file from %s/config.yaml\n", path)
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			fmt.Println("Cant find config file")
